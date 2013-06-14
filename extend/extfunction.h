@@ -3,7 +3,7 @@
 
 #include <assert.h>
 #include <string.h>
-#include "sqlite3/sqlite3.h"
+#include "sqlite3/include/sqlite3.h"
 
 #ifdef __cplusplus
 extern "C" {

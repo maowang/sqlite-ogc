@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 2.4)
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sqlite3.h ${CMAKE_CURRENT_BINARY_DIR}/include/sqlite3.h COPYONLY)
+
 file(GLOB_RECURSE SQLITE_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 file(GLOB_RECURSE SQLITE_SOURCE_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 file(GLOB_RECURSE SQLITE_EXTEND_SOURCE ${PROJECT_SOURCE_DIR}/extend/*.c)
 
+include_directories(${PROJECT_BINARY_DIR}/sqlite3/include)
 include_directories(${PROJECT_BINARY_DIR}/geos/include)
 include_directories(${PROJECT_BINARY_DIR}/libiconv/include)
 include_directories(${PROJECT_BINARY_DIR})

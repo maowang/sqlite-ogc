@@ -1,5 +1,5 @@
 #include "extend/extfunction.h"
-#include "libiconv/include/iconv.h"
+#include "iconv/include/iconv.h"
 #include "geos/capi/geos_c.h"
 
 typedef struct {
