@@ -1,6 +1,6 @@
-.echo on
+Ôªø.echo on
 
-select ext_utf8(ext_gbk('≤‚ ‘±‡¬Î◊™ªª')) = '≤‚ ‘±‡¬Î◊™ªª';
+select ext_utf8(ext_gbk('ÊµãËØïÁºñÁ†ÅËΩ¨Êç¢')) = 'ÊµãËØïÁºñÁ†ÅËΩ¨Êç¢';
 
 select hex(ext_geo_wkb('POINT(111.1 222.2)')) = '01010000006666666666C65B406666666666C66B40';
 select hex(ext_geo_wkb('LINESTRING(111.1 222.2,333.3 444.4)')) = '0102000000020000006666666666C65B406666666666C66B40CDCCCCCCCCD474406666666666C67B40';
@@ -64,8 +64,3 @@ select ext_geo_subgeos(ext_geo_wkb('MULTIPOINT((111.1 222.2),(333.3 444.4))')) =
 
 select ext_geo_x(ext_geo_wkb('POINT(111.1 222.2)')) = 111.1;
 select ext_geo_y(ext_geo_wkb('POINT(111.1 222.2)')) = 222.2;
-
-
-
-
-
