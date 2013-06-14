@@ -16,7 +16,7 @@ static void _get_envelope(GEOSGeometry* geometry,Rect* rect)
 	const GEOSGeometry* ring;
 	const GEOSCoordSequence* seq;
 	double x,y;
-	int loop=0;
+	unsigned int loop=0;
 	assert(rect != 0);
 	assert(geometry != 0);
 	rect->minX = rect->minY = rect->maxX = rect->maxY = 0;
@@ -24,7 +24,7 @@ static void _get_envelope(GEOSGeometry* geometry,Rect* rect)
 	if(GEOSGeomTypeId(geometry) == GEOS_POINT)
 	{
 		GEOSGeomGetX(geometry,&x);
-		GEOSGeomGetX(geometry,&y);
+		GEOSGeomGetY(geometry,&y);
 		rect->minX = rect->maxX = x;
 		rect->minY = rect->maxY = y;
 		return;
@@ -247,7 +247,176 @@ void ext_geo_maxy(sqlite3_context *context,int argc,sqlite3_value **argv)
 	}
 }
 
-#define ADD_EXTEND_FUNTION(x,n) sqlite3_create_function_v2(db,#x,n,SQLITE_ANY,0,x,0,0,0);
+void ext_geo_points(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	if(argc == 1 && sqlite3_value_type(argv[0]) == SQLITE_BLOB)
+	{ 
+		GEOSGeometry* geometry;
+		const void* data = sqlite3_value_blob(argv[0]);
+		size_t data_size = sqlite3_value_bytes(argv[0]);
+
+		initGEOS(0,0);
+		geometry = GEOSGeomFromWKB_buf((const unsigned char*)data,data_size);
+		if(geometry != 0)
+		{
+			int num_points = GEOSGetNumCoordinates(geometry);
+			sqlite3_result_int(context,num_points);
+		}
+		GEOSGeom_destroy(geometry);
+		finishGEOS();
+	}
+}
+
+void ext_geo_area(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	if(argc == 1 && sqlite3_value_type(argv[0]) == SQLITE_BLOB)
+	{ 
+		GEOSGeometry* geometry;
+		const void* data = sqlite3_value_blob(argv[0]);
+		size_t data_size = sqlite3_value_bytes(argv[0]);
+
+		initGEOS(0,0);
+		geometry = GEOSGeomFromWKB_buf((const unsigned char*)data,data_size);
+		if(geometry != 0)
+		{
+			double area = 0;
+			GEOSArea(geometry,&area);
+			sqlite3_result_double(context,area);
+		}
+		GEOSGeom_destroy(geometry);
+		finishGEOS();
+	}
+}
+
+
+void ext_geo_length(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	if(argc == 1 && sqlite3_value_type(argv[0]) == SQLITE_BLOB)
+	{ 
+		GEOSGeometry* geometry;
+		const void* data = sqlite3_value_blob(argv[0]);
+		size_t data_size = sqlite3_value_bytes(argv[0]);
+
+		initGEOS(0,0);
+		geometry = GEOSGeomFromWKB_buf((const unsigned char*)data,data_size);
+		if(geometry != 0)
+		{
+			double length = 0;
+			GEOSLength(geometry,&length);
+			sqlite3_result_double(context,length);
+		}
+		GEOSGeom_destroy(geometry);
+		finishGEOS();
+	}
+}
+
+void ext_geo_empty(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	if(argc == 1 && sqlite3_value_type(argv[0]) == SQLITE_BLOB)
+	{ 
+		GEOSGeometry* geometry;
+		const void* data = sqlite3_value_blob(argv[0]);
+		size_t data_size = sqlite3_value_bytes(argv[0]);
+
+		initGEOS(0,0);
+		geometry = GEOSGeomFromWKB_buf((const unsigned char*)data,data_size);
+		if(geometry != 0)
+		{
+			char empty = (GEOSisEmpty(geometry) == 1) ? 1 : 0;
+			sqlite3_result_int(context,empty);
+		}
+		GEOSGeom_destroy(geometry);
+		finishGEOS();
+	}
+}
+
+void ext_geo_valid(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	if(argc == 1 && sqlite3_value_type(argv[0]) == SQLITE_BLOB)
+	{ 
+		GEOSGeometry* geometry;
+		const void* data = sqlite3_value_blob(argv[0]);
+		size_t data_size = sqlite3_value_bytes(argv[0]);
+
+		initGEOS(0,0);
+		geometry = GEOSGeomFromWKB_buf((const unsigned char*)data,data_size);
+		if(geometry != 0)
+		{
+			char empty = (GEOSisValid(geometry) == 1) ? 1 : 0;
+			sqlite3_result_int(context,empty);
+		}
+		GEOSGeom_destroy(geometry);
+		finishGEOS();
+	}
+}
+
+void ext_geo_subgeos(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	if(argc == 1 && sqlite3_value_type(argv[0]) == SQLITE_BLOB)
+	{ 
+		GEOSGeometry* geometry;
+		const void* data = sqlite3_value_blob(argv[0]);
+		size_t data_size = sqlite3_value_bytes(argv[0]);
+
+		initGEOS(0,0);
+		geometry = GEOSGeomFromWKB_buf((const unsigned char*)data,data_size);
+		if(geometry != 0)
+		{
+			int sub_geos = GEOSGetNumGeometries(geometry);
+			sqlite3_result_int(context,sub_geos);
+		}
+		GEOSGeom_destroy(geometry);
+		finishGEOS();
+	}
+}
+
+void ext_geo_x(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	if(argc == 1 && sqlite3_value_type(argv[0]) == SQLITE_BLOB)
+	{ 
+		GEOSGeometry* geometry;
+		const void* data = sqlite3_value_blob(argv[0]);
+		size_t data_size = sqlite3_value_bytes(argv[0]);
+
+		initGEOS(0,0);
+		geometry = GEOSGeomFromWKB_buf((const unsigned char*)data,data_size);
+		if(geometry != 0)
+		{
+			if(GEOSGeomTypeId(geometry) == GEOS_POINT)
+			{
+				double x;
+				GEOSGeomGetX(geometry,&x);
+				sqlite3_result_int(context,x);
+			}
+		}
+		GEOSGeom_destroy(geometry);
+		finishGEOS();
+	}
+}
+
+void ext_geo_y(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	if(argc == 1 && sqlite3_value_type(argv[0]) == SQLITE_BLOB)
+	{ 
+		GEOSGeometry* geometry;
+		const void* data = sqlite3_value_blob(argv[0]);
+		size_t data_size = sqlite3_value_bytes(argv[0]);
+
+		initGEOS(0,0);
+		geometry = GEOSGeomFromWKB_buf((const unsigned char*)data,data_size);
+		if(geometry != 0)
+		{
+			if(GEOSGeomTypeId(geometry) == GEOS_POINT)
+			{
+				double y;
+				GEOSGeomGetY(geometry,&y);
+				sqlite3_result_int(context,y);
+			}
+		}
+		GEOSGeom_destroy(geometry);
+		finishGEOS();
+	}
+}
 
 void addextendfunctions(sqlite3* db)
 {
@@ -260,5 +429,13 @@ void addextendfunctions(sqlite3* db)
 	ADD_EXTEND_FUNTION(ext_geo_maxx,1);
 	ADD_EXTEND_FUNTION(ext_geo_miny,1);
 	ADD_EXTEND_FUNTION(ext_geo_maxy,1);
+	ADD_EXTEND_FUNTION(ext_geo_points,1);
+	ADD_EXTEND_FUNTION(ext_geo_area,1);
+	ADD_EXTEND_FUNTION(ext_geo_length,1);
+	ADD_EXTEND_FUNTION(ext_geo_empty,1);
+	ADD_EXTEND_FUNTION(ext_geo_valid,1);
+	ADD_EXTEND_FUNTION(ext_geo_subgeos,1);
+	ADD_EXTEND_FUNTION(ext_geo_x,1);
+	ADD_EXTEND_FUNTION(ext_geo_y,1);
 }
 
