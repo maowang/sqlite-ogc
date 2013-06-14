@@ -135,7 +135,6 @@ void ext_geo_wkb(sqlite3_context *context,int argc,sqlite3_value **argv)
 		{
 			wkb = GEOSGeomToWKB_buf(geometry,&size);
 			sqlite3_result_blob(context,(const void*)wkb,size,0);
-			GEOSFree(wkb);
 		}
 		GEOSGeom_destroy(geometry);
 		finishGEOS();
