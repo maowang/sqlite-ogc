@@ -9,6 +9,9 @@ typedef struct {
 	double maxY;
 }Rect;
 
+typedef char (*RelationJudge)(const GEOSGeometry* g1, const GEOSGeometry* g2);
+
+typedef GEOSGeometry* (*RelationCompute)(const GEOSGeometry* g1, const GEOSGeometry* g2);
 static void _get_envelope(GEOSGeometry* geometry,Rect* rect)
 {
 	unsigned int num_pnt;
@@ -493,6 +496,165 @@ void geo_bound(sqlite3_context *context,int argc,sqlite3_value **argv)
 	}
 }
 
+void geo_simplify(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	if(argc == 2 && sqlite3_value_type(argv[0]) == SQLITE_BLOB)
+	{ 
+		GEOSGeometry* geometry;
+		GEOSGeometry* simplify_geo;
+		const unsigned char* wkb;
+		size_t size;
+		const void* data = sqlite3_value_blob(argv[0]);
+		size_t data_size = sqlite3_value_bytes(argv[0]);
+
+		double tolerance = sqlite3_value_double(argv[1]);
+
+		_init_geos();
+		geometry = _geo_from_wkb((const unsigned char*)data,data_size);
+		if(geometry != 0)
+		{
+			simplify_geo = GEOSSimplify(geometry,tolerance);
+			if(simplify_geo != 0)
+			{
+				wkb = GEOSGeomToWKB_buf(simplify_geo,&size);
+				sqlite3_result_blob(context,wkb,size,0);
+				GEOSGeom_destroy(simplify_geo);
+			}
+		}
+		GEOSGeom_destroy(geometry);
+		finishGEOS();
+	}
+}
+
+static void _relation_compute(sqlite3_context *context,int argc,sqlite3_value **argv,RelationCompute Func)
+{
+	if(argc == 2 && sqlite3_value_type(argv[0]) == SQLITE_BLOB &&
+		sqlite3_value_type(argv[1]) == SQLITE_BLOB)
+	{ 
+		GEOSGeometry* geometry1;
+		GEOSGeometry* geometry2;
+		GEOSGeometry* geo_result;
+		const unsigned char* wkb;
+		size_t size;
+		const void* data1 = sqlite3_value_blob(argv[0]);
+		size_t data_size1 = sqlite3_value_bytes(argv[0]);
+
+		const void* data2 = sqlite3_value_blob(argv[1]);
+		size_t data_size2 = sqlite3_value_bytes(argv[1]);
+
+		_init_geos();
+		geometry1 = _geo_from_wkb((const unsigned char*)data1,data_size1);
+		geometry2 = _geo_from_wkb((const unsigned char*)data2,data_size2);
+		if(geometry1 != 0 && geometry2 != 0)
+		{
+			geo_result = Func(geometry1,geometry2);
+			if(geo_result != 0)
+			{
+				wkb = GEOSGeomToWKB_buf(geo_result,&size);
+				sqlite3_result_blob(context,wkb,size,0);
+				GEOSGeom_destroy(geo_result);
+			}
+		}
+		if(geometry1!=0)GEOSGeom_destroy(geometry1);
+		if(geometry2!=0)GEOSGeom_destroy(geometry2);
+		finishGEOS();
+	}
+}
+
+static void _relation_judge(sqlite3_context *context,int argc,sqlite3_value **argv,RelationJudge Func)
+{
+	if(argc == 2 && sqlite3_value_type(argv[0]) == SQLITE_BLOB &&
+		sqlite3_value_type(argv[1]) == SQLITE_BLOB)
+	{ 
+		GEOSGeometry* geometry1;
+		GEOSGeometry* geometry2;
+		char result;
+
+		const void* data1 = sqlite3_value_blob(argv[0]);
+		size_t data_size1 = sqlite3_value_bytes(argv[0]);
+
+		const void* data2 = sqlite3_value_blob(argv[1]);
+		size_t data_size2 = sqlite3_value_bytes(argv[1]);
+
+		_init_geos();
+		geometry1 = _geo_from_wkb((const unsigned char*)data1,data_size1);
+		geometry2 = _geo_from_wkb((const unsigned char*)data2,data_size2);
+		if(geometry1 != 0 && geometry2 != 0)
+		{
+			result = Func(geometry1,geometry2);
+			sqlite3_result_int(context,result);
+		}
+		if(geometry1!=0)GEOSGeom_destroy(geometry1);
+		if(geometry2!=0)GEOSGeom_destroy(geometry2);
+		finishGEOS();
+	}
+}
+
+void geo_intersection(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	_relation_compute(context,argc,argv,GEOSIntersection);
+}
+
+void geo_union(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	_relation_compute(context,argc,argv,GEOSUnion);
+}
+
+void geo_difference(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	_relation_compute(context,argc,argv,GEOSDifference);
+}
+
+void geo_disjoint(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	_relation_judge(context,argc,argv,GEOSDisjoint);
+}
+
+void geo_touches(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	_relation_judge(context,argc,argv,GEOSTouches);
+}
+
+void geo_intersects(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	_relation_judge(context,argc,argv,GEOSIntersects);
+}
+
+void geo_crosses(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	_relation_judge(context,argc,argv,GEOSCrosses);
+}
+
+void geo_within(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	_relation_judge(context,argc,argv,GEOSWithin);
+}
+
+void geo_contains(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	_relation_judge(context,argc,argv,GEOSContains);
+}
+
+void geo_overlaps(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	_relation_judge(context,argc,argv,GEOSOverlaps);
+}
+
+void geo_equals(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	_relation_judge(context,argc,argv,GEOSEquals);
+}
+
+void geo_covers(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	_relation_judge(context,argc,argv,GEOSCovers);
+}
+
+void geo_coveredby(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	_relation_judge(context,argc,argv,GEOSCoveredBy);
+}
+
 void addextendfunctions(sqlite3* db)
 {
 	ADD_EXTEND_FUNTION(utf8,1);
@@ -513,5 +675,19 @@ void addextendfunctions(sqlite3* db)
 	ADD_EXTEND_FUNTION(geo_x,1);
 	ADD_EXTEND_FUNTION(geo_y,1);
 	ADD_EXTEND_FUNTION(geo_bound,-1);
-}
+	ADD_EXTEND_FUNTION(geo_simplify,2);
+	ADD_EXTEND_FUNTION(geo_intersection,2);
+	ADD_EXTEND_FUNTION(geo_union,2);
+	ADD_EXTEND_FUNTION(geo_difference,2);
+	ADD_EXTEND_FUNTION(geo_disjoint,2);
+	ADD_EXTEND_FUNTION(geo_touches,2);
+	ADD_EXTEND_FUNTION(geo_intersects,2);
+	ADD_EXTEND_FUNTION(geo_crosses,2);
+	ADD_EXTEND_FUNTION(geo_within,2);
+	ADD_EXTEND_FUNTION(geo_contains,2);
+	ADD_EXTEND_FUNTION(geo_overlaps,2);
+	ADD_EXTEND_FUNTION(geo_equals,2);
+	ADD_EXTEND_FUNTION(geo_covers,2);
+	ADD_EXTEND_FUNTION(geo_coveredby,2);
 
+}

@@ -36,6 +36,22 @@ void geo_y(sqlite3_context *context,int argc,sqlite3_value **argv);
 
 void geo_bound(sqlite3_context *context,int argc,sqlite3_value **argv);
 
+void geo_simplify(sqlite3_context *context,int argc,sqlite3_value **argv);
+void geo_intesection(sqlite3_context *context,int argc,sqlite3_value **argv);
+void geo_union(sqlite3_context *context,int argc,sqlite3_value **argv);
+void geo_difference(sqlite3_context *context,int argc,sqlite3_value **argv);
+
+void geo_disjoint(sqlite3_context *context,int argc,sqlite3_value **argv);
+void geo_touches(sqlite3_context *context,int argc,sqlite3_value **argv);
+void geo_intersects(sqlite3_context *context,int argc,sqlite3_value **argv);
+void geo_crosses(sqlite3_context *context,int argc,sqlite3_value **argv);
+void geo_within(sqlite3_context *context,int argc,sqlite3_value **argv);
+void geo_contains(sqlite3_context *context,int argc,sqlite3_value **argv);
+void geo_overlaps(sqlite3_context *context,int argc,sqlite3_value **argv);
+void geo_equals(sqlite3_context *context,int argc,sqlite3_value **argv);
+void geo_covers(sqlite3_context *context,int argc,sqlite3_value **argv);
+void geo_coveredby(sqlite3_context *context,int argc,sqlite3_value **argv);
+
 // add extend function to db
 void addextendfunctions(sqlite3* db);
 

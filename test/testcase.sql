@@ -64,3 +64,8 @@ select geo_subgeos(geo_wkb('MULTIPOINT((111.1 222.2),(333.3 444.4))')) = 2;
 
 select geo_x(geo_wkb('POINT(111.1 222.2)')) = 111.1;
 select geo_y(geo_wkb('POINT(111.1 222.2)')) = 222.2;
+
+select geo_simplify(geo_wkb('LINESTRING(100 100,200 200,300 300,400 400)'),0) = geo_wkb('LINESTRING(100 100,400 400)');
+select geo_intersection(geo_wkb('LINESTRING(0 0,100 100)'),geo_wkb('LINESTRING(100 0,0 100)')) = geo_wkb('POINT(50 50)');
+select geo_intersects(geo_wkb('LINESTRING(0 0,100 100)'),geo_wkb('LINESTRING(100 0,0 100)'));
+select geo_intersects(geo_wkb('LINESTRING(0 0,100 100)'),geo_wkb('LINESTRING(100 0,200 100)')) = 0;
