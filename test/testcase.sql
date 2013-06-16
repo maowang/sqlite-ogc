@@ -1,4 +1,4 @@
-﻿.echo on
+.echo on
 
 select utf8(gbk('测试编码转换')) = '测试编码转换';
 
