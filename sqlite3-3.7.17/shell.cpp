@@ -37,6 +37,7 @@
 #include <stdarg.h>
 
 #include "extend/extfunction.h"
+#include "extend/importer.h"
 
 #if !defined(_WIN32) && !defined(WIN32)
 # include <signal.h>
@@ -1880,7 +1881,19 @@ static int do_meta_command(char *zLine, struct callback_data *p){
     int lineno = 0;             /* Line number of input file */
 
     open_db(p);
-    nSep = strlen30(p->separator);
+
+	const char* ext = file_ext(zFile);
+	if(*ext != 0 && stricmp(ext,".tab")==0)
+	{
+		nSep = import_mapinfo_tab(db,zFile,zTable);
+		if( nSep!=0 ){
+			fprintf(stderr, "Error:not a valid mapinfo tab file\n");
+			return 1;
+		}
+	}
+	else
+	{
+	nSep = strlen30(p->separator);
     if( nSep==0 ){
       fprintf(stderr, "Error: non-null separator required for import\n");
       return 1;
@@ -1989,6 +2002,7 @@ static int do_meta_command(char *zLine, struct callback_data *p){
     fclose(in);
     sqlite3_finalize(pStmt);
     sqlite3_exec(p->db, zCommit, 0, 0, 0);
+	}
   }else
 
   if( c=='i' && strncmp(azArg[0], "indices", n)==0 && nArg<3 ){
