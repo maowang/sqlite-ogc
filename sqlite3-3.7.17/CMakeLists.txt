@@ -18,6 +18,7 @@ include_directories(${PROJECT_BINARY_DIR})
 include_directories(${PROJECT_SOURCE_DIR})
 
 add_definitions(-DLIBICONV_PLUG)
+add_definitions(-DHAVE_READLINE=1)
 add_definitions(-D_REENTRANT=1 -DSQLITE_THREADSAFE=1 -DSQLITE_ENABLE_FTS3 -DSQLITE_ENABLE_RTREE)
 
 link_directories(${PROJECT_BINARY_DIR}/libs)
@@ -30,6 +31,7 @@ target_link_libraries(sqlite3 geos_c)
 target_link_libraries(sqlite3 mitab)
 
 if(NOT MSVC)
+target_link_libraries(sqlite3 readline)
 target_link_libraries(sqlite3 pthread)
 target_link_libraries(sqlite3 dl)
 endif()
