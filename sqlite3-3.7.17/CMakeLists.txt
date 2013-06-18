@@ -17,8 +17,11 @@ include_directories(${PROJECT_BINARY_DIR}/libiconv/include)
 include_directories(${PROJECT_BINARY_DIR})
 include_directories(${PROJECT_SOURCE_DIR})
 
-add_definitions(-DLIBICONV_PLUG)
+if(NOT MSVC)
 add_definitions(-DHAVE_READLINE=1)
+endif()
+
+add_definitions(-DLIBICONV_PLUG)
 add_definitions(-D_REENTRANT=1 -DSQLITE_THREADSAFE=1 -DSQLITE_ENABLE_FTS3 -DSQLITE_ENABLE_RTREE)
 
 link_directories(${PROJECT_BINARY_DIR}/libs)
