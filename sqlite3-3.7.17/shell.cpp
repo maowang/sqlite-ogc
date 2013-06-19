@@ -1883,11 +1883,11 @@ static int do_meta_command(char *zLine, struct callback_data *p){
     open_db(p);
 
 	const char* ext = file_ext(zFile);
-	if(*ext != 0 && stricmp(ext,".tab")==0)
+	if(*ext != 0 && (stricmp(ext,".tab")==0 || stricmp(ext,".mif")==0))
 	{
-		nSep = import_mapinfo_tab(db,zFile,zTable);
+		nSep = import_mapinfo_tab(db,zFile,zTable,ext);
 		if( nSep!=0 ){
-			fprintf(stderr, "Error:not a valid mapinfo tab file\n");
+			fprintf(stderr, "Error:not a valid mapinfo tab or mif file\n");
 			return 1;
 		}
 	}

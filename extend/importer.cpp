@@ -31,18 +31,27 @@ const char* file_ext(const char* path)
 	return path;
 }
 
-int import_mapinfo_tab(sqlite3* db,const char* tab_path,const char* table)
+int import_mapinfo_tab(sqlite3* db,const char* tab_path,const char* table,const char* ext)
 {
 	assert(db != 0);
 	assert(tab_path != 0);
 	assert(table != 0);
 
-	TABFile* tab = new TABFile();
-	if (tab == 0)return 1;
-	int result = tab->Open(tab_path,"r");
+	IMapInfoFile* mapinfo = 0;
+	if(sqlite3_stricmp(ext,".tab") == 0)
+	{
+		mapinfo = new TABFile();
+	}
+	else if(sqlite3_stricmp(ext,".mif") == 0)
+	{
+		mapinfo = new MIFFile();
+	}
+
+	if (mapinfo == 0)return 1;
+	int result = mapinfo->Open(tab_path,"r");
 	if (result == -1)return 1;
 
-	OGRFeatureDefn* feaDefn = tab->GetLayerDefn();
+	OGRFeatureDefn* feaDefn = mapinfo->GetLayerDefn();
 
 	std::string stmt_sql = "INSERT INTO ";
 	std::string sql = "DROP TABLE IF EXISTS ";
@@ -60,7 +69,7 @@ int import_mapinfo_tab(sqlite3* db,const char* tab_path,const char* table)
 	{
 		OGRFieldDefn* feildDefn = feaDefn->GetFieldDefn(i);
 		sql =  sql + "'" +feildDefn->GetNameRef() + "' "; 
-		int dbtype = mapinfo_type_to_db(tab->GetNativeFieldType(i));
+		int dbtype = mapinfo_type_to_db(mapinfo->GetNativeFieldType(i));
 		sql = sql + DBTYPE_2_STRING(dbtype);
 
 		stmt_sql += "?";
@@ -87,10 +96,10 @@ int import_mapinfo_tab(sqlite3* db,const char* tab_path,const char* table)
 
 	int nFeatureId = -1;
 
-	while ((nFeatureId = tab->GetNextFeatureId(nFeatureId)) != -1) 
+	while ((nFeatureId = mapinfo->GetNextFeatureId(nFeatureId)) != -1) 
 	{
 		int bindId = 1;
-		TABFeature* feature = tab->GetFeatureRef(nFeatureId);
+		TABFeature* feature = mapinfo->GetFeatureRef(nFeatureId);
 		if (feature != 0) {
 			sqlite3_bind_int(stmt,bindId++,nFeatureId);
 
@@ -116,8 +125,8 @@ int import_mapinfo_tab(sqlite3* db,const char* tab_path,const char* table)
 
 	sqlite3_finalize(stmt);
 	sqlite3_exec(db,"commit",0,0,0);
-	tab->Close();
-	delete tab;
-	tab = NULL;
+	mapinfo->Close();
+	delete mapinfo;
+	mapinfo = NULL;
 	return 0;
 }
