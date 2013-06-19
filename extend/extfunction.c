@@ -679,7 +679,7 @@ void geo_polyline_encode(sqlite3_context *context,int argc,sqlite3_value **argv)
 		char* encodestr;
 		const void* data = sqlite3_value_blob(argv[0]);
 		size_t data_size = sqlite3_value_bytes(argv[0]);
-		int point = 0;
+		int point = 1;
 		
 		if(argc > 1)
 		{
