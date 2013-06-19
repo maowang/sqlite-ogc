@@ -130,3 +130,58 @@ int import_mapinfo_tab(sqlite3* db,const char* tab_path,const char* table,const 
 	mapinfo = NULL;
 	return 0;
 }
+
+int build_rtree(sqlite3* db,const char* srctable,const char* desttable)
+{
+	assert(srctable != 0);
+
+	std::string sql;
+	int result;
+	std::string str_src_table = srctable;
+	std::string str_dst_table;
+
+	if(desttable == 0)
+	{
+		str_dst_table = str_src_table + "_rtree";
+	}
+	else
+	{
+		str_dst_table = desttable;
+	}
+
+	sql = "DROP TABLE IF EXISTS ";
+	sql += str_dst_table;
+
+	sqlite3_exec(db,"BEGIN",0,0,0);
+
+	// delete rtree table if exists
+	result = sqlite3_exec(db,sql.c_str(),0,0,0);
+	if(result != SQLITE_OK)
+	{
+		sqlite3_exec(db,"ROLLBACK",0,0,0);
+		return -1;
+	}
+
+	// create rtree table
+	sql = "CREATE VIRTUAL TABLE ";
+	sql += str_dst_table + " USING RTREE (id,minx,maxx,miny,maxy)";
+	result = sqlite3_exec(db,sql.c_str(),0,0,0);
+	if(result != SQLITE_OK)
+	{
+		sqlite3_exec(db,"ROLLBACK",0,0,0);
+		return -1;
+	}
+
+	// insert geo bound to rtree table
+	sql = "INSERT INTO ";
+	sql += str_dst_table + " SELECT rowid,geo_minx(geometry),geo_maxx(geometry),geo_miny(geometry),geo_maxy(geometry) FROM " + str_src_table;
+	result = sqlite3_exec(db,sql.c_str(),0,0,0);
+	if(result != SQLITE_OK)
+	{
+		sqlite3_exec(db,"ROLLBACK",0,0,0);
+		return -1;
+	}
+
+	sqlite3_exec(db,"COMMIT",0,0,0);
+	return 0;
+}

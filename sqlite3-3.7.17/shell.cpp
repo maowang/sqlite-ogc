@@ -1741,6 +1741,15 @@ static int do_meta_command(char *zLine, struct callback_data *p){
     test_breakpoint();
   }else
 
+  /*
+  ** Build R-TREE for table
+  */
+  if( c=='b' && nArg>=2 && strncmp(azArg[0], "buildrtree", n)==0 ){
+	  open_db(p);
+	  if(nArg==2)build_rtree(p->db,azArg[1],0);
+	  else if(nArg>2)build_rtree(p->db,azArg[1],azArg[2]);
+  }else
+
   if( c=='d' && n>1 && strncmp(azArg[0], "databases", n)==0 && nArg==1 ){
     struct callback_data data;
     char *zErrMsg = 0;
