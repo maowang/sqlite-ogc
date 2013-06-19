@@ -1,6 +1,9 @@
+#include <stdlib.h>
+
 #include "extend/extfunction.h"
 #include "iconv/include/iconv.h"
 #include "geos/capi/geos_c.h"
+#include "extend/coder.h"
 
 typedef struct {
 	double minX;
@@ -668,6 +671,37 @@ void geo_coveredby(sqlite3_context *context,int argc,sqlite3_value **argv)
 	_relation_judge(context,argc,argv,GEOSCoveredBy);
 }
 
+void geo_polyline_encode(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	if(argc >= 1 && sqlite3_value_type(argv[0]) == SQLITE_BLOB)
+	{ 
+		GEOSGeometry* geometry;
+		char* encodestr;
+		const void* data = sqlite3_value_blob(argv[0]);
+		size_t data_size = sqlite3_value_bytes(argv[0]);
+		int point = 0;
+		
+		if(argc > 1)
+		{
+			point = sqlite3_value_int(argv[1]);
+		}
+
+		_init_geos();
+		geometry = _geo_from_wkb((const unsigned char*)data,data_size);
+		if(geometry != 0)
+		{
+			encodestr = polyline_encode(geometry,point);
+			if(encodestr != 0)
+			{
+				sqlite3_result_text(context,encodestr,-1,SQLITE_TRANSIENT);
+				free(encodestr);
+			}
+		}
+		GEOSGeom_destroy(geometry);
+		finishGEOS();
+	}
+}
+
 void addextendfunctions(sqlite3* db)
 {
 	ADD_EXTEND_FUNTION(utf8,1);
@@ -702,6 +736,7 @@ void addextendfunctions(sqlite3* db)
 	ADD_EXTEND_FUNTION(geo_equals,2);
 	ADD_EXTEND_FUNTION(geo_covers,2);
 	ADD_EXTEND_FUNTION(geo_coveredby,2);
+	ADD_EXTEND_FUNTION(geo_polyline_encode,-1);
 }
 
 

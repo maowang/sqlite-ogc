@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 // user must free memory
-char* polyline_encode(GEOSGeometry* geometry,int* size);
+char* polyline_encode(GEOSGeometry* geometry,int point);
 
 // user must free geometry
 GEOSGeometry* polyline_decode(const char* strcode,int size);

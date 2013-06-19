@@ -52,6 +52,8 @@ void geo_equals(sqlite3_context *context,int argc,sqlite3_value **argv);
 void geo_covers(sqlite3_context *context,int argc,sqlite3_value **argv);
 void geo_coveredby(sqlite3_context *context,int argc,sqlite3_value **argv);
 
+void geo_polyline_encode(sqlite3_context *context,int argc,sqlite3_value **argv);
+
 // add extend function to db
 void addextendfunctions(sqlite3* db);
 
