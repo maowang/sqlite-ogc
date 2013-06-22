@@ -11,7 +11,7 @@ extern "C" {
 char* polyline_encode(GEOSGeometry* geometry,int point);
 
 // user must free geometry
-GEOSGeometry* polyline_decode(const char* strcode,int size);
+GEOSGeometry* polyline_decode(const unsigned char* strcode,int size);
 
 #ifdef __cplusplus
 }

@@ -73,3 +73,6 @@ select geo_intersects(geo_wkb('LINESTRING(0 0,100 100)'),geo_wkb('LINESTRING(100
 select geo_polyline_encode(geo_wkb('point(38.5 -120.2)'),100000) = '_p~iF~ps|U';
 select geo_polyline_encode(geo_wkb('point(-179.9832104 -179.9832104)'),100000) = '`~oia@`~oia@';
 select geo_polyline_encode(geo_wkb('LINESTRING(38.5 -120.2,40.7 -120.95,43.252 -126.453)'),100000) = '_p~iF~ps|U_ulLnnqC}lqNvxq`@';
+
+select geo_polyline_decode('_p~iF~ps|U',100000) = geo_wkb('point(38.5 -120.2)');
+select geo_polyline_decode('`~oia@`~oia@',100000) = geo_wkb('point(-179.98321 -179.98321)');

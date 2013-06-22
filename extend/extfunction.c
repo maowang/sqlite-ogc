@@ -702,6 +702,36 @@ void geo_polyline_encode(sqlite3_context *context,int argc,sqlite3_value **argv)
 	}
 }
 
+void geo_polyline_decode(sqlite3_context *context,int argc,sqlite3_value **argv)
+{
+	if(argc >= 1 && sqlite3_value_type(argv[0]) == SQLITE_TEXT)
+	{ 
+		GEOSGeometry* geometry;
+		const unsigned char* data = sqlite3_value_text(argv[0]);
+		int point = 1;
+		size_t size = 0;
+
+		if(argc > 1)
+		{
+			point = sqlite3_value_int(argv[1]);
+		}
+
+		_init_geos();
+		geometry = polyline_decode(data,point);
+		if(geometry != 0)
+		{
+			unsigned char* wkb = GEOSGeomToWKB_buf(geometry,&size);
+			if(wkb != NULL)
+			{
+				sqlite3_result_blob(context,wkb,size,SQLITE_TRANSIENT);
+				GEOSFree(wkb);
+			}
+		}
+		GEOSGeom_destroy(geometry);
+		finishGEOS();
+	}
+}
+
 void addextendfunctions(sqlite3* db)
 {
 	ADD_EXTEND_FUNTION(utf8,1);
@@ -737,6 +767,7 @@ void addextendfunctions(sqlite3* db)
 	ADD_EXTEND_FUNTION(geo_covers,2);
 	ADD_EXTEND_FUNTION(geo_coveredby,2);
 	ADD_EXTEND_FUNTION(geo_polyline_encode,-1);
+	ADD_EXTEND_FUNTION(geo_polyline_decode,-1);
 }
 
 
